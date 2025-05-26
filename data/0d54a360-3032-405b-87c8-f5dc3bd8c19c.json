@@ -1,0 +1,41 @@
+{
+  "age": "21",
+  "gender": "female",
+  "weight": "42",
+  "heightFeet": "5",
+  "heightInches": "1",
+  "exerciseFrequency": "light",
+  "exerciseTypes": [
+    "Walking"
+  ],
+  "sleepHours": "5",
+  "sleepQuality": "average",
+  "dietType": "non-vegetarian",
+  "waterIntake": "low",
+  "stressLevel": "5",
+  "smokingStatus": "non-smoker",
+  "alcoholConsumption": "none",
+  "fastFoodFrequency": "never",
+  "screenTime": "minimal",
+  "outdoorTime": "moderate",
+  "familyHistory": [
+    "Heart Disease",
+    "Diabetes",
+    "High Blood Pressure",
+    "Mental Health Conditions"
+  ],
+  "existingConditions": [
+    "None of the above"
+  ],
+  "chronicPain": "no",
+  "painLevel": "",
+  "allergies": [],
+  "medications": [],
+  "bloodPressure": "normal",
+  "cholesterolLevels": "normal",
+  "lastCheckup": "6-12-months",
+  "vaccinationStatus": "yes",
+  "height": "155",
+  "id": "0d54a360-3032-405b-87c8-f5dc3bd8c19c",
+  "timestamp": "2025-05-26T09:14:04.208Z"
+}

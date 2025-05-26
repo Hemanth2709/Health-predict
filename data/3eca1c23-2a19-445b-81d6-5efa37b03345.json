@@ -1,0 +1,39 @@
+{
+  "age": "24",
+  "gender": "male",
+  "weight": "87",
+  "heightFeet": "5",
+  "heightInches": "11",
+  "exerciseFrequency": "moderate",
+  "exerciseTypes": [
+    "Strength Training",
+    "Cardio"
+  ],
+  "sleepHours": "6",
+  "sleepQuality": "fair",
+  "dietType": "non-vegetarian",
+  "waterIntake": "low",
+  "stressLevel": "5",
+  "smokingStatus": "non-smoker",
+  "alcoholConsumption": "none",
+  "fastFoodFrequency": "often",
+  "screenTime": "moderate",
+  "outdoorTime": "high",
+  "familyHistory": [
+    "None of the above"
+  ],
+  "existingConditions": [
+    "None of the above"
+  ],
+  "chronicPain": "no",
+  "painLevel": "",
+  "allergies": [],
+  "medications": [],
+  "bloodPressure": "normal",
+  "cholesterolLevels": "high",
+  "lastCheckup": "never",
+  "vaccinationStatus": "yes",
+  "height": "180",
+  "id": "3eca1c23-2a19-445b-81d6-5efa37b03345",
+  "timestamp": "2025-05-06T05:22:26.702Z"
+}
