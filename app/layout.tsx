@@ -1,20 +1,25 @@
-import type { Metadata } from 'next'
-import './globals.css'
+import type { Metadata } from "next";
+import "./globals.css";
+import Header from "@/components/header/Header";
+import Footer from "@/components/Footer/Footer";
 
 export const metadata: Metadata = {
-  title: 'Health Predict',
-  description: 'Get Your Health checked',
-  generator: 'v0.dev',
-}
+  title: "Vital Scope",
+  description: "Get Your Health checked",
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Header />
+        {children}
+        <Footer />
+      </body>
     </html>
-  )
+  );
 }

@@ -395,7 +395,7 @@ def index(request):
     Simple index page
     """
     return JsonResponse({
-        'service': 'Health Prediction API',
+        'service': 'Vital Scopeion API',
         'status': 'active',
         'endpoints': {
             '/api/predict': 'POST - Submit lifestyle data for health prediction'
