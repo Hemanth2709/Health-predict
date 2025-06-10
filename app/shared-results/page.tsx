@@ -64,33 +64,12 @@ export default function SharedResultsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Activity className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">HealthPredict</h1>
-          </div>
-          <nav>
-            <ul className="flex space-x-6">
-              <li>
-                <Link href="/" className="font-medium">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/predict" className="font-medium">
-                  Get Your Prediction
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
+
 
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold">Shared Health Prediction Results</h1>
+            <h1 className="text-3xl font-bold">Shared Vital Scopeion Results</h1>
             <p className="text-gray-600 mt-2">
               These results have been shared with you. Create your own health prediction by completing our
               questionnaire.
@@ -221,7 +200,7 @@ export default function SharedResultsPage() {
 
           <div className="flex justify-center">
             <Button asChild>
-              <Link href="/predict">Get Your Own Health Prediction</Link>
+              <Link href="/predict">Get Your Own Vital Scopeion</Link>
             </Button>
           </div>
         </div>

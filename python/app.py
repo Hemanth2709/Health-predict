@@ -352,7 +352,7 @@ def mock_predict_health_risks(user_data):
 @app.route('/')
 def index():
     return jsonify({
-        'service': 'Health Prediction API',
+        'service': 'Vital Scopeion API',
         'status': 'active',
         'endpoints': {
             '/api/predict': 'POST - Submit lifestyle data for health prediction'

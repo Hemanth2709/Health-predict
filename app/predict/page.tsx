@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, ArrowRight, Activity, AlertCircle, CheckCircle } from "lucide-react"
-import Link from "next/link"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { ValidationErrors } from "@/lib/validation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -27,7 +26,7 @@ export default function PredictPage() {
     heightFeet: "",
     heightInches: "",
     exerciseFrequency: "",
-    exerciseTypes: [],
+    exerciseTypes: [] as string[],
     sleepHours: "",
     sleepQuality: "",
     dietType: "",
@@ -38,12 +37,12 @@ export default function PredictPage() {
     fastFoodFrequency: "",
     screenTime: "",
     outdoorTime: "",
-    familyHistory: [],
-    existingConditions: [],
+    familyHistory: [] as string[],
+    existingConditions: [] as string[],
     chronicPain: "",
     painLevel: "",
-    allergies: [],
-    medications: [],
+    allergies: [] as string[],
+    medications: [] as string[],
     bloodPressure: "",
     cholesterolLevels: "",
     lastCheckup: "",
@@ -247,35 +246,12 @@ export default function PredictPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Activity className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-800">
-              HealthPredict
-            </h1>
-          </div>
-          <nav>
-            <ul className="flex space-x-6">
-              <li>
-                <Link href="/" className="font-medium text-gray-600 hover:text-primary-600 transition-colors">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="font-medium text-gray-600 hover:text-primary-600 transition-colors">
-                  About
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
+
 
       <main className="container mx-auto px-4 py-12">
         <motion.div className="max-w-3xl mx-auto" initial="hidden" animate="visible" variants={fadeInVariants}>
           <h1 className="text-3xl font-bold mb-2 text-center bg-clip-text text-transparent bg-gradient-to-r from-primary-700 to-primary-900">
-            Health Prediction Questionnaire
+            Vital Scopeion Questionnaire
           </h1>
           <p className="text-gray-600 text-center mb-8">
             Complete this questionnaire to receive your personalized health insights

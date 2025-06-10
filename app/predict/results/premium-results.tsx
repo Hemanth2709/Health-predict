@@ -205,7 +205,7 @@ export default function PremiumResultsPage() {
 
       // Create a simple text report
       const reportContent =
-        `Health Prediction Report\n\nOverall Risk: ${overallRisk}%\n\n` +
+        `Vital Scopeion Report\n\nOverall Risk: ${overallRisk}%\n\n` +
         riskData
           .map(
             (category) =>
@@ -239,7 +239,7 @@ export default function PremiumResultsPage() {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: "My Health Prediction Results",
+          title: "My Vital Scopeion Results",
           text: `My overall health risk is ${overallRisk}%. Check out my detailed health prediction results.`,
           url: window.location.href,
         })
@@ -263,7 +263,7 @@ export default function PremiumResultsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Your Health Prediction Results</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Your Vital Scopeion Results</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Based on your information, we've analyzed your health risks and identified key factors affecting your
             wellbeing.

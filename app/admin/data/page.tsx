@@ -62,7 +62,7 @@ export default function DataManagementPage() {
 
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Health Prediction Data</CardTitle>
+          <CardTitle>Vital Scopeion Data</CardTitle>
           <CardDescription>View and manage all collected health data</CardDescription>
         </CardHeader>
         <CardContent>
