@@ -8,7 +8,7 @@
 
 VitalScope estimates your **cardiovascular and metabolic risk** with machine-learning models trained on **253,680 CDC survey responses**, then explains which factors raise or lower each score. It's a 3-minute, three-step questionnaire with no sign-up, and your answers are never stored.
 
-<!-- Add your deployment URL here once it is live: **[Live demo →](https://your-app.vercel.app)** -->
+**[Live demo →](https://vital-scope.vercel.app)**
 
 ![Results overview](docs/screenshots/results.png)
 
@@ -74,7 +74,7 @@ npm run dev            # http://localhost:3000
 
 Other scripts: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`.
 
-Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_SITE_URL` to your deployment URL. It's used for canonical, Open Graph, sitemap and robots URLs.
+`NEXT_PUBLIC_SITE_URL` (see `.env.example`) sets the canonical, Open Graph, sitemap and robots URLs. On Vercel it falls back to the project's production URL automatically.
 
 ### Retrain the models (optional)
 
@@ -105,7 +105,7 @@ tests/                      # Vitest: schema, model parity, API
 
 ## Deploying
 
-The app deploys to Vercel with no extra configuration: the model runs inside the Next.js API route, so no Python server is needed. Set `NEXT_PUBLIC_SITE_URL` in the project's environment variables.
+The app deploys to Vercel with no extra configuration: the model runs inside the Next.js API route, so no Python server is needed.
 
 ## Disclaimer
 
