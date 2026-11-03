@@ -18,6 +18,7 @@ yarn-error.log*
 
 # env files
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -25,3 +26,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# never commit user submissions or raw datasets
+/data/
+/ml/data/
+
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# test output
+/coverage/

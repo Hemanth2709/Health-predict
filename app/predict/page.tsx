@@ -3,159 +3,90 @@
 import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, ArrowRight, Activity, AlertCircle, CheckCircle } from "lucide-react"
+import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
-import type { ValidationErrors } from "@/lib/validation"
+import { STEP_SCHEMAS, toFieldErrors, type FieldErrors } from "@/lib/health/schema"
+import type { AssessmentResult } from "@/lib/risk/types"
+import { saveAssessment } from "@/lib/client/results-store"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { v4 as uuidv4 } from "uuid"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
+
+const INITIAL_FORM = {
+  age: "",
+  gender: "",
+  weight: "",
+  heightFeet: "",
+  heightInches: "",
+  exerciseFrequency: "",
+  exerciseTypes: [] as string[],
+  sleepHours: "",
+  sleepQuality: "",
+  dietType: "",
+  waterIntake: "",
+  stressLevel: "5" as string | number,
+  smokingStatus: "",
+  alcoholConsumption: "",
+  fastFoodFrequency: "",
+  screenTime: "",
+  outdoorTime: "",
+  familyHistory: [] as string[],
+  existingConditions: [] as string[],
+  chronicPain: "",
+  painLevel: "" as string | number,
+  bloodPressure: "",
+  cholesterolLevels: "",
+  lastCheckup: "",
+  vaccinationStatus: "",
+}
 
 export default function PredictPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
-  const [formData, setFormData] = useState({
-    age: "",
-    gender: "",
-    weight: "",
-    heightFeet: "",
-    heightInches: "",
-    exerciseFrequency: "",
-    exerciseTypes: [] as string[],
-    sleepHours: "",
-    sleepQuality: "",
-    dietType: "",
-    waterIntake: "",
-    stressLevel: "5",
-    smokingStatus: "",
-    alcoholConsumption: "",
-    fastFoodFrequency: "",
-    screenTime: "",
-    outdoorTime: "",
-    familyHistory: [] as string[],
-    existingConditions: [] as string[],
-    chronicPain: "",
-    painLevel: "",
-    allergies: [] as string[],
-    medications: [] as string[],
-    bloodPressure: "",
-    cholesterolLevels: "",
-    lastCheckup: "",
-    vaccinationStatus: "",
-  })
-
-  const [errors, setErrors] = useState<ValidationErrors>({})
+  const [formData, setFormData] = useState(INITIAL_FORM)
+  const [errors, setErrors] = useState<FieldErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [generalError, setGeneralError] = useState<string | null>(null)
   const [validationAttempted, setValidationAttempted] = useState(false)
   const [submitAttempted, setSubmitAttempted] = useState(false)
+  const [consent, setConsent] = useState(false)
 
-  // Update the handleChange function for age validation
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: string | string[] | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
 
-    // Clear error for this field when user makes a change
+    // Clear the error for this field as soon as the user edits it
     if (errors[field]) {
       setErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors[field]
-        return newErrors
+        const next = { ...prev }
+        delete next[field]
+        return next
       })
     }
   }
 
+  /** Validates the current step with the same zod schema the API uses. */
   const validateCurrentStep = (): boolean => {
-    let fieldsToValidate: Record<string, any> = {}
-    let hasErrors = false
-    const newErrors: ValidationErrors = {}
-
-    // Determine which fields to validate based on current step
-    if (currentStep === 1) {
-      fieldsToValidate = {
-        age: formData.age,
-        gender: formData.gender,
-        weight: formData.weight,
-        heightFeet: formData.heightFeet,
-        heightInches: formData.heightInches,
-        bloodPressure: formData.bloodPressure,
-        cholesterolLevels: formData.cholesterolLevels,
-        lastCheckup: formData.lastCheckup,
-      }
-
-      // Validate age specifically
-      if (formData.age) {
-        const ageValue = Number.parseInt(formData.age as string)
-        if (ageValue < 0 || ageValue > 114) {
-          hasErrors = true
-          newErrors["age"] = ["Please enter an age between 0 and 114."]
-        }
-      }
-    } else if (currentStep === 2) {
-      fieldsToValidate = {
-        exerciseFrequency: formData.exerciseFrequency,
-        sleepHours: formData.sleepHours,
-        sleepQuality: formData.sleepQuality,
-        dietType: formData.dietType,
-        waterIntake: formData.waterIntake,
-        fastFoodFrequency: formData.fastFoodFrequency,
-        screenTime: formData.screenTime,
-        outdoorTime: formData.outdoorTime,
-      }
-      // exerciseTypes is optional, so we don't need to validate it
-    } else if (currentStep === 3) {
-      fieldsToValidate = {
-        stressLevel: formData.stressLevel,
-        smokingStatus: formData.smokingStatus,
-        alcoholConsumption: formData.alcoholConsumption,
-        chronicPain: formData.chronicPain,
-        vaccinationStatus: formData.vaccinationStatus,
-      }
-
-      // Only validate pain level if chronic pain is "yes"
-      if (formData.chronicPain === "yes" && !formData.painLevel) {
-        hasErrors = true
-        newErrors["painLevel"] = ["Please rate your pain level"]
-      }
-
-      // For family history and existing conditions, they're valid if they have any selection
-      // This includes the "None" option
-      if (!formData.familyHistory || formData.familyHistory.length === 0) {
-        hasErrors = true
-        newErrors["familyHistory"] = ["Please select at least one option or 'None of the above'"]
-      }
-
-      if (!formData.existingConditions || formData.existingConditions.length === 0) {
-        hasErrors = true
-        newErrors["existingConditions"] = ["Please select at least one option or 'None of the above'"]
-      }
+    const schema = STEP_SCHEMAS[currentStep as 1 | 2 | 3]
+    const result = schema.safeParse(formData)
+    if (result.success) {
+      setErrors({})
+      return true
     }
-
-    // Check if any required fields are empty
-    Object.entries(fieldsToValidate).forEach(([key, value]) => {
-      if (!value || (Array.isArray(value) && value.length === 0)) {
-        hasErrors = true
-        newErrors[key] = [`${key.replace(/([A-Z])/g, " $1").toLowerCase()} is required`]
-      }
-    })
-
-    if (hasErrors) {
-      setErrors(newErrors)
-      return false
-    }
-
-    return true
+    setErrors(toFieldErrors(result.error))
+    return false
   }
 
   const nextStep = () => {
     setValidationAttempted(true)
     if (validateCurrentStep()) {
       setCurrentStep((prev) => Math.min(prev + 1, 3))
-      setValidationAttempted(false) // Reset for the next step
+      setValidationAttempted(false)
       window.scrollTo({ top: 0, behavior: "smooth" })
     }
   }
@@ -165,14 +96,14 @@ export default function PredictPage() {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  // Update the handleSubmit function to improve error handling
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitAttempted(true)
     setValidationAttempted(true)
 
-    // Validate current step first
-    if (!validateCurrentStep()) {
+    if (!validateCurrentStep()) return
+    if (!consent) {
+      setErrors((prev) => ({ ...prev, consent: ["Please confirm you understand this is not medical advice"] }))
       return
     }
 
@@ -180,61 +111,33 @@ export default function PredictPage() {
     setGeneralError(null)
 
     try {
-      // Convert height from feet/inches to cm for backend processing
-      const heightInCm = calculateHeightInCm()
+      const response = await fetch("/api/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+        cache: "no-store",
+      })
+      const body = await response.json().catch(() => null)
 
-      // Create a copy of the form data with the calculated height in cm
-      const processedData = {
-        ...formData,
-        height: heightInCm.toString(),
+      if (response.status === 422 && body?.fieldErrors) {
+        setErrors(body.fieldErrors)
+        setGeneralError("Some answers need attention. Please review the highlighted fields.")
+        return
+      }
+      if (!response.ok || !body) {
+        throw new Error(body?.error ?? `Request failed (${response.status})`)
       }
 
-      // Add ID and timestamp for storage
-      const dataToSave = {
-        ...processedData,
-        id: uuidv4(),
-        timestamp: new Date().toISOString(),
-      }
-
-      // Save to backend with improved error handling
-      try {
-        const response = await fetch("/api/data/save", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(dataToSave),
-          cache: "no-store",
-        })
-
-        const responseData = await response.json()
-
-        if (!response.ok) {
-          console.error("Server error:", responseData)
-          throw new Error(responseData.message || "Failed to save data")
-        }
-
-        // Navigate to results page
-        router.push(`/predict/results?data=${encodeURIComponent(JSON.stringify(processedData))}`)
-      } catch (fetchError) {
-        console.error("Fetch error:", fetchError)
-        setGeneralError("There was an error submitting your data. Please try again.")
-        setIsSubmitting(false)
-      }
-    } catch (error) {
-      console.error("Error processing form data:", error)
-      setGeneralError("There was an error submitting your data. Please try again.")
+      saveAssessment(body as AssessmentResult)
+      router.push("/predict/results")
+    } catch {
+      setGeneralError("We couldn't compute your assessment right now. Please try again.")
+    } finally {
       setIsSubmitting(false)
     }
   }
 
-  const calculateHeightInCm = () => {
-    const feet = Number.parseInt(formData.heightFeet as string) || 0
-    const inches = Number.parseInt(formData.heightInches as string) || 0
-    return Math.round(feet * 30.48 + inches * 2.54)
-  }
-
-  // Only show validation errors if the user has attempted to submit the form or move to the next step
+  // Only show validation errors once the user has tried to continue or submit
   const shouldShowError = (field: string) => {
     return (validationAttempted || submitAttempted) && errors[field]
   }
@@ -248,10 +151,10 @@ export default function PredictPage() {
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
 
 
-      <main className="container mx-auto px-4 py-12">
-        <motion.div className="max-w-3xl mx-auto" initial="hidden" animate="visible" variants={fadeInVariants}>
+      <main className="container mx-auto overflow-x-hidden px-4 py-12">
+        <m.div className="max-w-3xl mx-auto" initial="hidden" animate="visible" variants={fadeInVariants}>
           <h1 className="text-3xl font-bold mb-2 text-center bg-clip-text text-transparent bg-gradient-to-r from-primary-700 to-primary-900">
-            Vital Scopeion Questionnaire
+            Health Risk Questionnaire
           </h1>
           <p className="text-gray-600 text-center mb-8">
             Complete this questionnaire to receive your personalized health insights
@@ -267,7 +170,7 @@ export default function PredictPage() {
           <div className="mb-8">
             <div className="flex justify-between mb-2">
               {[1, 2, 3].map((step) => (
-                <motion.button
+                <m.button
                   key={step}
                   onClick={() => {
                     // Only allow going back to previous steps or current step
@@ -288,22 +191,22 @@ export default function PredictPage() {
                   {step === 1 && "Personal"}
                   {step === 2 && "Lifestyle"}
                   {step === 3 && "Medical"}
-                </motion.button>
+                </m.button>
               ))}
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-              <motion.div
+              <m.div
                 className="bg-gradient-to-r from-primary-500 to-primary-600 h-2.5 rounded-full"
                 style={{ width: `${(currentStep / 3) * 100}%` }}
                 initial={{ width: 0 }}
                 animate={{ width: `${(currentStep / 3) * 100}%` }}
                 transition={{ duration: 0.5 }}
-              ></motion.div>
+              ></m.div>
             </div>
           </div>
 
           <form onSubmit={handleSubmit}>
-            <motion.div
+            <m.div
               key={currentStep}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -349,7 +252,7 @@ export default function PredictPage() {
                   {currentStep === 1 && (
                     <div className="space-y-6">
                       <div className="grid grid-cols-2 gap-4">
-                        <motion.div
+                        <m.div
                           className="space-y-2"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -358,29 +261,29 @@ export default function PredictPage() {
                           <Label htmlFor="age" className={shouldShowError("age") ? "text-destructive" : ""}>
                             Age
                           </Label>
-                          {/* Update the age input validation */}
                           <Input
                             id="age"
                             type="number"
-                            min="0"
+                            inputMode="numeric"
+                            min="18"
                             max="114"
                             placeholder="Enter your age"
                             value={formData.age}
-                            onChange={(e) => {
-                              const value = Number.parseInt(e.target.value)
-                              if (value < 0 || value > 114) {
-                                handleChange("age", e.target.value)
-                                setErrors((prev) => ({ ...prev, age: ["Please enter an age between 0 and 114."] }))
-                              } else {
-                                handleChange("age", e.target.value)
-                              }
-                            }}
+                            onChange={(e) => handleChange("age", e.target.value)}
+                            aria-invalid={Boolean(shouldShowError("age"))}
+                            aria-describedby={shouldShowError("age") ? "age-error" : undefined}
                             className={`premium-input ${shouldShowError("age") ? "border-destructive" : ""}`}
                             required
                           />
-                          {shouldShowError("age") && <p className="text-sm text-destructive">{errors.age[0]}</p>}
-                        </motion.div>
-                        <motion.div
+                          {shouldShowError("age") ? (
+                            <p id="age-error" className="text-sm text-destructive">
+                              {errors.age[0]}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-gray-500">This assessment is designed for adults (18+).</p>
+                          )}
+                        </m.div>
+                        <m.div
                           className="space-y-2"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -407,10 +310,10 @@ export default function PredictPage() {
                             </SelectContent>
                           </Select>
                           {shouldShowError("gender") && <p className="text-sm text-destructive">{errors.gender[0]}</p>}
-                        </motion.div>
+                        </m.div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        <motion.div
+                        <m.div
                           className="space-y-2"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -444,8 +347,8 @@ export default function PredictPage() {
                             required
                           />
                           {shouldShowError("weight") && <p className="text-sm text-destructive">{errors.weight[0]}</p>}
-                        </motion.div>
-                        <motion.div
+                        </m.div>
+                        <m.div
                           className="space-y-2"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -533,10 +436,10 @@ export default function PredictPage() {
                               )}
                             </div>
                           </div>
-                        </motion.div>
+                        </m.div>
                       </div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -565,15 +468,15 @@ export default function PredictPage() {
                             <SelectItem value="elevated">Elevated (120/80 - 129/80)</SelectItem>
                             <SelectItem value="high-stage1">High Stage 1 (130/80 - 139/89)</SelectItem>
                             <SelectItem value="high-stage2">High Stage 2 (140/90 or higher)</SelectItem>
-                            <SelectItem value="unknown">I don't know</SelectItem>
+                            <SelectItem value="unknown">I don&apos;t know</SelectItem>
                           </SelectContent>
                         </Select>
                         {shouldShowError("bloodPressure") && (
                           <p className="text-sm text-destructive">{errors.bloodPressure[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -600,15 +503,15 @@ export default function PredictPage() {
                             <SelectItem value="normal">Normal</SelectItem>
                             <SelectItem value="borderline">Borderline High</SelectItem>
                             <SelectItem value="high">High</SelectItem>
-                            <SelectItem value="unknown">I don't know</SelectItem>
+                            <SelectItem value="unknown">I don&apos;t know</SelectItem>
                           </SelectContent>
                         </Select>
                         {shouldShowError("cholesterolLevels") && (
                           <p className="text-sm text-destructive">{errors.cholesterolLevels[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -643,13 +546,13 @@ export default function PredictPage() {
                         {shouldShowError("lastCheckup") && (
                           <p className="text-sm text-destructive">{errors.lastCheckup[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
                     </div>
                   )}
 
                   {currentStep === 2 && (
                     <div className="space-y-6">
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -683,9 +586,9 @@ export default function PredictPage() {
                         {shouldShowError("exerciseFrequency") && (
                           <p className="text-sm text-destructive">{errors.exerciseFrequency[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -725,9 +628,9 @@ export default function PredictPage() {
                         {shouldShowError("exerciseTypes") && (
                           <p className="text-sm text-destructive">{errors.exerciseTypes[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -759,9 +662,9 @@ export default function PredictPage() {
                         {shouldShowError("sleepHours") && (
                           <p className="text-sm text-destructive">{errors.sleepHours[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -795,9 +698,9 @@ export default function PredictPage() {
                         {shouldShowError("sleepQuality") && (
                           <p className="text-sm text-destructive">{errors.sleepQuality[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -828,9 +731,9 @@ export default function PredictPage() {
                         {shouldShowError("dietType") && (
                           <p className="text-sm text-destructive">{errors.dietType[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -873,9 +776,9 @@ export default function PredictPage() {
                         {shouldShowError("waterIntake") && (
                           <p className="text-sm text-destructive">{errors.waterIntake[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -926,9 +829,9 @@ export default function PredictPage() {
                         {shouldShowError("fastFoodFrequency") && (
                           <p className="text-sm text-destructive">{errors.fastFoodFrequency[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -979,9 +882,9 @@ export default function PredictPage() {
                         {shouldShowError("screenTime") && (
                           <p className="text-sm text-destructive">{errors.screenTime[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1032,13 +935,13 @@ export default function PredictPage() {
                         {shouldShowError("outdoorTime") && (
                           <p className="text-sm text-destructive">{errors.outdoorTime[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
                     </div>
                   )}
 
                   {currentStep === 3 && (
                     <div className="space-y-6">
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1073,9 +976,9 @@ export default function PredictPage() {
                         {shouldShowError("stressLevel") && (
                           <p className="text-sm text-destructive">{errors.stressLevel[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1126,9 +1029,9 @@ export default function PredictPage() {
                         {shouldShowError("smokingStatus") && (
                           <p className="text-sm text-destructive">{errors.smokingStatus[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1179,9 +1082,9 @@ export default function PredictPage() {
                         {shouldShowError("alcoholConsumption") && (
                           <p className="text-sm text-destructive">{errors.alcoholConsumption[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1216,10 +1119,10 @@ export default function PredictPage() {
                         {shouldShowError("chronicPain") && (
                           <p className="text-sm text-destructive">{errors.chronicPain[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
                       {formData.chronicPain === "yes" && (
-                        <motion.div
+                        <m.div
                           className="space-y-2"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -1251,10 +1154,10 @@ export default function PredictPage() {
                           {shouldShowError("painLevel") && (
                             <p className="text-sm text-destructive">{errors.painLevel[0]}</p>
                           )}
-                        </motion.div>
+                        </m.div>
                       )}
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1299,15 +1202,15 @@ export default function PredictPage() {
                               id="vaccination-unknown"
                               className="data-[state=checked]:bg-primary-600 data-[state=checked]:border-primary-600"
                             />
-                            <Label htmlFor="vaccination-unknown">I don't know</Label>
+                            <Label htmlFor="vaccination-unknown">I don&apos;t know</Label>
                           </div>
                         </RadioGroup>
                         {shouldShowError("vaccinationStatus") && (
                           <p className="text-sm text-destructive">{errors.vaccinationStatus[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1381,9 +1284,9 @@ export default function PredictPage() {
                         {shouldShowError("familyHistory") && (
                           <p className="text-sm text-destructive">{errors.familyHistory[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div
+                      <m.div
                         className="space-y-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1461,12 +1364,45 @@ export default function PredictPage() {
                         {shouldShowError("existingConditions") && (
                           <p className="text-sm text-destructive">{errors.existingConditions[0]}</p>
                         )}
-                      </motion.div>
+                      </m.div>
+                    </div>
+                  )}
+                  {currentStep === 3 && (
+                    <div className="mt-8 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id="consent"
+                          checked={consent}
+                          onCheckedChange={(checked) => {
+                            setConsent(checked === true)
+                            if (checked) {
+                              setErrors(({ consent: _cleared, ...rest }) => rest)
+                            }
+                          }}
+                          aria-describedby="consent-description"
+                        />
+                        <div>
+                          <Label htmlFor="consent" className="text-sm font-medium text-gray-900">
+                            I understand this is an educational tool, not medical advice
+                          </Label>
+                          <p id="consent-description" className="mt-1 text-xs text-gray-600">
+                            Your answers are sent once to compute your scores and are never stored or logged. Results stay
+                            in this browser tab only. See our{" "}
+                            <Link href="/privacy" className="underline">
+                              privacy notice
+                            </Link>
+                            .
+                          </p>
+                          {shouldShowError("consent") && (
+                            <p className="mt-1 text-sm text-destructive">{errors.consent[0]}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </CardContent>
                 <CardFooter className="flex justify-between bg-gray-50 border-t border-gray-100">
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <m.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Button
                       type="button"
                       variant="outline"
@@ -1476,9 +1412,9 @@ export default function PredictPage() {
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" /> Back
                     </Button>
-                  </motion.div>
+                  </m.div>
                   {currentStep < 3 ? (
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <m.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button
                         type="button"
                         onClick={nextStep}
@@ -1486,9 +1422,9 @@ export default function PredictPage() {
                       >
                         Next <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
-                    </motion.div>
+                    </m.div>
                   ) : (
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <m.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button
                         type="submit"
                         disabled={isSubmitting}
@@ -1524,13 +1460,13 @@ export default function PredictPage() {
                           </>
                         )}
                       </Button>
-                    </motion.div>
+                    </m.div>
                   )}
                 </CardFooter>
               </Card>
-            </motion.div>
+            </m.div>
           </form>
-        </motion.div>
+        </m.div>
       </main>
     </div>
   )
