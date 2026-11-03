@@ -1,14 +1,12 @@
 import type { Config } from "tailwindcss"
-const { fontFamily } = require("tailwindcss/defaultTheme")
+import { fontFamily } from "tailwindcss/defaultTheme"
+import animate from "tailwindcss-animate"
 
 const config: Config = {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./*.{js,ts,jsx,tsx,mdx}",
-    "*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
@@ -80,11 +78,11 @@ const config: Config = {
         "premium-hover": "0 6px 8px rgba(0, 0, 0, 0.35)",
       },
       fontFamily: {
-        sans: ["Inter", "Helvetica Neue", "Arial", "sans-serif", ...fontFamily.sans],
+        sans: ["var(--font-inter)", "Helvetica Neue", "Arial", ...fontFamily.sans],
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animate],
 }
 
 export default config

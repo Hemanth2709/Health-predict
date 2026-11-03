@@ -1,210 +1,102 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { Suspense } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import { AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
-import { Activity, Heart, Brain, Moon, AlertCircle } from "lucide-react"
+import { CATEGORY_META, LEVEL_STYLES, MethodBadge } from "@/components/results/meta"
+import { ResultsLoading } from "@/components/results/no-results"
+import { decodeShare } from "@/lib/share"
 
-export default function SharedResultsPage() {
-  const [loading, setLoading] = useState(true)
-  const [results, setResults] = useState<any>(null)
+function SharedResults() {
   const searchParams = useSearchParams()
+  const summary = decodeShare(searchParams.get("r"))
 
-  useEffect(() => {
-    // Get shared results data from URL parameter
-    const idParam = searchParams.get("id")
-
-    if (idParam) {
-      try {
-        const decodedData = JSON.parse(atob(idParam))
-        setResults(decodedData.results)
-        setLoading(false)
-      } catch (error) {
-        console.error("Error parsing shared results:", error)
-        setLoading(false)
-      }
-    } else {
-      setLoading(false)
-    }
-  }, [searchParams])
-
-  const getRiskLevel = (score: number) => {
-    if (score < 25) return { label: "Low Risk", color: "bg-green-500" }
-    if (score < 50) return { label: "Moderate Risk", color: "bg-yellow-500" }
-    if (score < 75) return { label: "High Risk", color: "bg-orange-500" }
-    return { label: "Very High Risk", color: "bg-red-500" }
-  }
-
-  if (loading) {
+  if (!summary) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <Activity className="h-12 w-12 text-primary animate-pulse mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Loading Shared Results</h2>
-        <p className="text-gray-600">Please wait while we load the shared health prediction results...</p>
-      </div>
-    )
-  }
-
-  if (!results) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Results Not Found</h2>
-        <p className="text-gray-600 mb-6">The shared health prediction results could not be found or have expired.</p>
+      <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
+        <AlertCircle className="mb-4 h-12 w-12 text-red-500" aria-hidden />
+        <h1 className="mb-2 text-2xl font-bold">Link not valid</h1>
+        <p className="mb-6 text-gray-600">This shared results link is incomplete or has been altered.</p>
         <Button asChild>
-          <Link href="/">Go to Homepage</Link>
+          <Link href="/">Go to homepage</Link>
         </Button>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <main className="container mx-auto px-4 py-12">
+      <div className="mx-auto max-w-3xl">
+        <h1 className="mb-2 text-3xl font-bold text-gray-900">Shared Health Risk Profile</h1>
+        <p className="mb-8 text-gray-600">
+          {summary.generatedAt && <>Assessed on {summary.generatedAt}. </>}
+          Only the scores are shared. The answers behind them never leave the original browser.
+        </p>
 
-
-      <main className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold">Shared Vital Scopeion Results</h1>
-            <p className="text-gray-600 mt-2">
-              These results have been shared with you. Create your own health prediction by completing our
-              questionnaire.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Heart className="h-5 w-5 mr-2 text-red-500" />
-                  Cardiovascular Health
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Risk Score</span>
-                    <span className="font-medium">{results.cardiovascular.risk}%</span>
-                  </div>
-                  <Progress
-                    value={results.cardiovascular.risk}
-                    className={`h-2 ${getRiskLevel(results.cardiovascular.risk).color}`}
-                  />
-                  <div className="text-sm text-right">{getRiskLevel(results.cardiovascular.risk).label}</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Activity className="h-5 w-5 mr-2 text-blue-500" />
-                  Metabolic Health
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Risk Score</span>
-                    <span className="font-medium">{results.metabolic.risk}%</span>
-                  </div>
-                  <Progress
-                    value={results.metabolic.risk}
-                    className={`h-2 ${getRiskLevel(results.metabolic.risk).color}`}
-                  />
-                  <div className="text-sm text-right">{getRiskLevel(results.metabolic.risk).label}</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Moon className="h-5 w-5 mr-2 text-indigo-500" />
-                  Sleep Quality
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Risk Score</span>
-                    <span className="font-medium">{results.sleep.risk}%</span>
-                  </div>
-                  <Progress value={results.sleep.risk} className={`h-2 ${getRiskLevel(results.sleep.risk).color}`} />
-                  <div className="text-sm text-right">{getRiskLevel(results.sleep.risk).label}</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Brain className="h-5 w-5 mr-2 text-purple-500" />
-                  Mental Wellbeing
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Risk Score</span>
-                    <span className="font-medium">{results.mental.risk}%</span>
-                  </div>
-                  <Progress value={results.mental.risk} className={`h-2 ${getRiskLevel(results.mental.risk).color}`} />
-                  <div className="text-sm text-right">{getRiskLevel(results.mental.risk).label}</div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Tabs defaultValue="cardiovascular" className="mb-8">
-            <TabsList className="grid grid-cols-4">
-              <TabsTrigger value="cardiovascular">Cardiovascular</TabsTrigger>
-              <TabsTrigger value="metabolic">Metabolic</TabsTrigger>
-              <TabsTrigger value="sleep">Sleep</TabsTrigger>
-              <TabsTrigger value="mental">Mental</TabsTrigger>
-            </TabsList>
-            {Object.keys(results).map((key) => (
-              <TabsContent key={key} value={key} className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Key Factors & Recommendations</CardTitle>
-                    <CardDescription>
-                      Based on lifestyle data, here are the factors affecting {key} health
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      {results[key].factors.map((factor: any, index: number) => (
-                        <div key={index} className="border-b pb-4 last:border-0 last:pb-0">
-                          <h4 className="font-medium mb-2">{factor.name}</h4>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-500">Impact:</span>
-                            <span>{factor.impact}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-500">Suggestion:</span>
-                            <span className="text-right">{factor.suggestion}</span>
-                          </div>
-                        </div>
-                      ))}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Overall score: {summary.overall.risk}/100</CardTitle>
+            <CardDescription>
+              <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${LEVEL_STYLES[summary.overall.level]}`}>
+                {summary.overall.level}
+              </span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-5">
+              {summary.categories.map((c) => {
+                const meta = CATEGORY_META[c.id]
+                return (
+                  <li key={c.id}>
+                    <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full p-1.5 text-white" style={{ backgroundColor: meta.color }}>
+                          {meta.icon}
+                        </span>
+                        <span className="font-medium">{c.category}</span>
+                        <MethodBadge method={c.method} />
+                      </div>
+                      <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${LEVEL_STYLES[c.level]}`}>
+                        {c.level === "Diagnosed" ? "Existing diagnosis" : `${c.risk}/100 · ${c.level}`}
+                      </span>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            ))}
-          </Tabs>
+                    <div
+                      className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200"
+                      role="meter"
+                      aria-label={`${c.category} risk score`}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={c.risk}
+                    >
+                      <div className="h-full rounded-full" style={{ width: `${c.risk}%`, backgroundColor: meta.color }} />
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </CardContent>
+        </Card>
 
-          <div className="flex justify-center">
-            <Button asChild>
-              <Link href="/predict">Get Your Own Vital Scopeion</Link>
-            </Button>
-          </div>
+        <div className="text-center">
+          <Button asChild className="bg-primary-600 text-white hover:bg-primary-700">
+            <Link href="/predict">Get your own assessment</Link>
+          </Button>
+          <p className="mt-6 text-xs text-gray-500">
+            VitalScope is an educational tool, not a medical diagnosis.
+          </p>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
+  )
+}
+
+export default function SharedResultsPage() {
+  return (
+    <Suspense fallback={<ResultsLoading />}>
+      <SharedResults />
+    </Suspense>
   )
 }

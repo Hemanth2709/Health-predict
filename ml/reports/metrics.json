@@ -1,0 +1,161 @@
+{
+  "dataset_rows": 253680,
+  "models": {
+    "metabolic": {
+      "target": "Diabetes_binary",
+      "prevalence": 0.1393,
+      "n_train": 202944,
+      "n_test": 50736,
+      "logistic_regression": {
+        "roc_auc": 0.7937,
+        "pr_auc": 0.3721,
+        "brier": 0.1026,
+        "log_loss": 0.3344,
+        "cv5_roc_auc_mean": 0.7987,
+        "cv5_roc_auc_std": 0.0019
+      },
+      "gradient_boosting": {
+        "roc_auc": 0.7966,
+        "pr_auc": 0.378,
+        "brier": 0.102,
+        "log_loss": 0.3324
+      },
+      "baseline_prevalence": {
+        "roc_auc": 0.5,
+        "pr_auc": 0.1393,
+        "brier": 0.1199,
+        "log_loss": 0.4037
+      },
+      "calibration_logistic_regression": [
+        {
+          "mean_predicted": 0.0104,
+          "observed_rate": 0.0087,
+          "n": 5074
+        },
+        {
+          "mean_predicted": 0.0225,
+          "observed_rate": 0.0168,
+          "n": 5074
+        },
+        {
+          "mean_predicted": 0.0359,
+          "observed_rate": 0.0382,
+          "n": 5074
+        },
+        {
+          "mean_predicted": 0.0526,
+          "observed_rate": 0.0505,
+          "n": 5074
+        },
+        {
+          "mean_predicted": 0.0747,
+          "observed_rate": 0.0778,
+          "n": 5074
+        },
+        {
+          "mean_predicted": 0.1052,
+          "observed_rate": 0.1098,
+          "n": 5074
+        },
+        {
+          "mean_predicted": 0.1464,
+          "observed_rate": 0.1547,
+          "n": 5073
+        },
+        {
+          "mean_predicted": 0.2036,
+          "observed_rate": 0.2088,
+          "n": 5073
+        },
+        {
+          "mean_predicted": 0.2875,
+          "observed_rate": 0.3022,
+          "n": 5073
+        },
+        {
+          "mean_predicted": 0.4599,
+          "observed_rate": 0.426,
+          "n": 5073
+        }
+      ]
+    },
+    "cardiovascular": {
+      "target": "HeartDiseaseorAttack",
+      "prevalence": 0.0942,
+      "n_train": 202944,
+      "n_test": 50736,
+      "logistic_regression": {
+        "roc_auc": 0.8199,
+        "pr_auc": 0.3187,
+        "brier": 0.0738,
+        "log_loss": 0.2522,
+        "cv5_roc_auc_mean": 0.8206,
+        "cv5_roc_auc_std": 0.0047
+      },
+      "gradient_boosting": {
+        "roc_auc": 0.8233,
+        "pr_auc": 0.3253,
+        "brier": 0.0731,
+        "log_loss": 0.2496
+      },
+      "baseline_prevalence": {
+        "roc_auc": 0.5,
+        "pr_auc": 0.0942,
+        "brier": 0.0853,
+        "log_loss": 0.3121
+      },
+      "calibration_logistic_regression": [
+        {
+          "mean_predicted": 0.0056,
+          "observed_rate": 0.0045,
+          "n": 5074
+        },
+        {
+          "mean_predicted": 0.0111,
+          "observed_rate": 0.0095,
+          "n": 5074
+        },
+        {
+          "mean_predicted": 0.0188,
+          "observed_rate": 0.0128,
+          "n": 5074
+        },
+        {
+          "mean_predicted": 0.029,
+          "observed_rate": 0.024,
+          "n": 5074
+        },
+        {
+          "mean_predicted": 0.0425,
+          "observed_rate": 0.0384,
+          "n": 5074
+        },
+        {
+          "mean_predicted": 0.0612,
+          "observed_rate": 0.0593,
+          "n": 5074
+        },
+        {
+          "mean_predicted": 0.0875,
+          "observed_rate": 0.0956,
+          "n": 5073
+        },
+        {
+          "mean_predicted": 0.1262,
+          "observed_rate": 0.137,
+          "n": 5073
+        },
+        {
+          "mean_predicted": 0.1899,
+          "observed_rate": 0.2072,
+          "n": 5073
+        },
+        {
+          "mean_predicted": 0.3695,
+          "observed_rate": 0.3536,
+          "n": 5073
+        }
+      ]
+    }
+  }
+}
